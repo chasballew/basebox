@@ -16,8 +16,10 @@ Basebox - Packer build template
  `$ packer build -var-file=aws_keys.json basebox.json`
 
 For Patapsco, add:
+```json
 {
   "type": "file",
   "source": "authorized_keys",
   "destination": "/tmp/authorized_keys"
 }
+```
