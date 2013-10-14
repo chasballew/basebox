@@ -1,1 +1,1 @@
-Put an `authorized_keys` file and an `aws_keys.json` file in this directory.
+Put a `keys.json` file in this directory. Check the `variables` section of the template for what needs to be defined.

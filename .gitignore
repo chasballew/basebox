@@ -1,5 +1,4 @@
-config/aws_keys.json
-config/authorized_keys.json
+config/keys.json
 packer_cache
 
 .DS_Store
