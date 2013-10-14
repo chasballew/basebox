@@ -1,14 +1,29 @@
 {
+  "variables": {
+    "is_patapsco": "false",
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "chas_ssh_key": "",
+    "frank_ssh_key": ""
+  },
   "builders": [
     {
       "type": "amazon-ebs",
-      "access_key": "",
-      "secret_key": "",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
       "region": "us-east-1",
-      "source_ami": "ami-de0d9eb7",
+      "source_ami": "ami-967edcff",
       "instance_type": "t1.micro",
       "ssh_username": "ubuntu",
-      "ami_name": "packer-example {{timestamp}}"
+      "ami_name": "aptible-{{timestamp}}",
+      "ami_description": "Basebox, generated with Packer.",
+      "ami_groups": ["admins"],
+      "security_group_id": "sg-29214a42",
+      "tags": {
+        "OS_Version": "Ubuntu",
+        "Release": "12.04-LTS",
+        "Security Group": "SSH Only"
+      }
     },
     {
       "type": "virtualbox",
@@ -23,17 +38,35 @@
   ],
   "provisioners": [
     {
+      "type": "file",
+      "source": "config/patapsco/patapsco_issue.net",
+      "destination": "/tmp/patapsco_issue.net"
+    },
+    {
       "type": "shell",
       "inline": [
-        "sleep 30",
-        "sudo apt-get update",
-        "sudo apt-get install -y redis-server"
+        "sleep 10"
       ]
     },
     {
-      "type": "file",
-      "source": "authorized_keys",
-      "destination": "/tmp/authorized_keys"
+      "type": "shell",
+      "scripts": [
+        "scripts/base.sh",
+        "scripts/patapsco.sh"
+      ],
+      "environment_vars": [
+        "is_patapsco={{user `is_patapsco`}}",
+        "chas_ssh_key={{user `chas_ssh_key`}}",
+        "frank_ssh_key={{user `frank_ssh_key`}}"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "only": [
+        "virtualbox"
+      ]
     }
   ]
 }

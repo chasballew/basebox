@@ -1,0 +1,1 @@
+Put an `authorized_keys` file and an `aws_keys.json` file in this directory.
