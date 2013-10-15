@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/bash -x
 
-if [$is_patapsco = "true"]
+if [ $is_patapsco = "true" ];
 then
-	cp /tmp/patapsco_issue.net /etc/issue.net
+	sudo cp /tmp/patapsco_issue.net /etc/issue.net
 fi

@@ -1,21 +1,27 @@
-#!/bin/bash
+#!/bin/bash -x
 
-# as 'ubuntu'
+apt-get -y update
+apt-get -y upgrade
+# apt-get -y install gcc build-essential linux-headers-$(uname -r)
+# apt-get -y install zlib1g-dev libssl-dev libreadline-gplv2-dev libyaml-dev
+apt-get -y install fail2ban
+# apt-get -y install tiger
+apt-get -y install vim curl
 
-#backup sshd_config, set to readonly
-sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.factory-defaults
-sudo chmod a-w /etc/ssh/sshd_config.factory-defaults
+# secure shared memory
+# echo "tmpfs     /dev/shm     tmpfs     defaults,noexec,nosuid     0     0" >> /etc/fstab
+
+# backup sshd_config, set to readonly
+cp /etc/ssh/sshd_config /etc/ssh/sshd_config.factory-defaults
+chmod a-w /etc/ssh/sshd_config.factory-defaults
 
 # configure /etc/ssh/sshd_config
+cp /tmp/basebox_sshd_config /etc/ssh/sshd_config
+chmod 0644 /etc/ssh/sshd_config
 
-# create chas and frank accounts
-check /etc/sudoers
-add 91-cloud-init-custom-users to /etc/sudoers.d
+# Limit use of su to admins
+# dpkg-statoverride --update --add root admin 4750 /bin/su
 
-include:
-chas ALL=(ALL) NOPASSWD:ALL
-frank ALL=(ALL) NOPASSWD:ALL
-
-# append $chas_ssh_key and $frank_ssh_key to each user's ~/.ssh/authorized_keys
-sudo restart ssh
-
+# harden network with sysctl settings
+# disable Open DNS Recursion and Remove Version info - BIND DNS Server
+# prevent IP spoofing

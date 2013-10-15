@@ -2,9 +2,7 @@
   "variables": {
     "is_patapsco": "false",
     "aws_access_key": "",
-    "aws_secret_key": "",
-    "chas_ssh_key": "",
-    "frank_ssh_key": ""
+    "aws_secret_key": ""
   },
   "builders": [
     {
@@ -12,12 +10,11 @@
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "region": "us-east-1",
-      "source_ami": "ami-967edcff",
+      "source_ami": "ami-d0f89fb9",
       "instance_type": "t1.micro",
       "ssh_username": "ubuntu",
       "ami_name": "aptible-{{timestamp}}",
       "ami_description": "Basebox, generated with Packer.",
-      "ami_groups": ["admins"],
       "security_group_id": "sg-29214a42",
       "tags": {
         "OS_Version": "Ubuntu",
@@ -31,34 +28,65 @@
       "iso_url": "http://releases.ubuntu.com/12.04/ubuntu-12.04.3-server-amd64.iso",
       "iso_checksum": "2cbe868812a871242cdcdd8f2fd6feb9",
       "iso_checksum_type": "md5",
-      "ssh_username": "packer",
-      "ssh_wait_timeout": "30s",
-      "shutdown_command": "shutdown -P now"
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "15m",
+      "shutdown_command": "echo 'shutdown -P now' > shutdown.sh; echo 'vagrant'|sudo -S sh 'shutdown.sh'",
+      "boot_wait": "6s",
+      "http_directory": "config/http",
+      "output_directory": "packer-vbox-output",
+      "boot_command": [
+        "<esc><esc><enter><wait>",
+        "/install/vmlinuz noapic ",
+        "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg ",
+        "debian-installer=en_US auto locale=en_US kbd-chooser/method=us ",
+        "hostname={{ .Name }} ",
+        "fb=false debconf/frontend=noninteractive ",
+        "keyboard-configuration/modelcode=SKIP keyboard-configuration/layout=USA ",
+        "keyboard-configuration/variant=USA console-setup/ask_detect=false ",
+        "initrd=/install/initrd.gz -- <enter>"
+      ]
     }
   ],
   "provisioners": [
+    {
+      "type": "file",
+      "source": "config/basebox_sshd_config",
+      "destination": "/tmp/basebox_sshd_config"
+    },
     {
       "type": "file",
       "source": "config/patapsco/patapsco_issue.net",
       "destination": "/tmp/patapsco_issue.net"
     },
     {
-      "type": "shell",
-      "inline": [
-        "sleep 10"
-      ]
+      "type": "file",
+      "source": "config/chas_authorized_keys",
+      "destination": "/tmp/chas_authorized_keys"
+    },
+    {
+      "type": "file",
+      "source": "config/frank_authorized_keys",
+      "destination": "/tmp/frank_authorized_keys"
     },
     {
       "type": "shell",
       "scripts": [
         "scripts/base.sh",
-        "scripts/patapsco.sh"
+        "scripts/users.sh",
+        "scripts/patapsco.sh",
+        "scripts/vagrant.sh",
+        "scripts/cleanup.sh"
       ],
       "environment_vars": [
-        "is_patapsco={{user `is_patapsco`}}",
-        "chas_ssh_key={{user `chas_ssh_key`}}",
-        "frank_ssh_key={{user `frank_ssh_key`}}"
-      ]
+        "is_patapsco={{user `is_patapsco`}}"
+      ],
+      "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E '{{ .Path }}'",
+      "override": {
+        "virtualbox": {
+          "execute_command": "echo 'vagrant'| {{ .Vars }} sudo -E -S sh '{{.Path}}'"
+        }
+      }
     }
   ],
   "post-processors": [
@@ -66,7 +94,8 @@
       "type": "vagrant",
       "only": [
         "virtualbox"
-      ]
+      ],
+      "vagrantfile_template": "config/Vagrantfile"
     }
   ]
 }
