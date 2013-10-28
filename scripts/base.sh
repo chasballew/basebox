@@ -20,8 +20,10 @@ cp /tmp/basebox_sshd_config /etc/ssh/sshd_config
 chmod 0644 /etc/ssh/sshd_config
 
 # Limit use of su to admins
-# dpkg-statoverride --update --add root admin 4750 /bin/su
+dpkg-statoverride --update --add root admin 4750 /bin/su
 
 # harden network with sysctl settings
+cp /tmp/sysctl.conf /etc/systcl.conf
+
 # disable Open DNS Recursion and Remove Version info - BIND DNS Server
 # prevent IP spoofing
